@@ -1,0 +1,220 @@
+
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Absensi MTs Darul Hikmah</title>
+<style>
+:root {
+  --green:#176b45;
+  --dark:#104b32;
+  --light:#eaf5ee;
+  --bg:#f4f7f5;
+}
+* {box-sizing:border-box}
+body {
+  margin:0;
+  font-family:Arial,sans-serif;
+  background:var(--bg);
+  color:#24352c;
+}
+header {
+  background:var(--dark);
+  color:white;
+  padding:22px;
+}
+header h2 {margin:0 0 6px}
+header p {margin:0;font-size:13px;opacity:.85}
+.container {
+  max-width:1100px;
+  margin:25px auto;
+  padding:0 18px;
+}
+.welcome {margin-bottom:20px}
+.cards {
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:14px;
+}
+.card {
+  background:white;
+  border-radius:12px;
+  padding:18px;
+  box-shadow:0 2px 9px #0000000b;
+}
+.card small {color:#718078}
+.card h2 {margin:10px 0 0;color:var(--green)}
+.panel {
+  background:white;
+  padding:20px;
+  border-radius:12px;
+  margin-top:20px;
+  box-shadow:0 2px 9px #0000000b;
+}
+input,select,button {
+  padding:11px;
+  border:1px solid #d5dfd8;
+  border-radius:7px;
+  font-size:14px;
+}
+button {
+  background:var(--green);
+  color:white;
+  border:0;
+  cursor:pointer;
+}
+button:hover {background:var(--dark)}
+.form {
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+  margin:15px 0;
+}
+.form input {flex:1;min-width:150px}
+table {
+  width:100%;
+  border-collapse:collapse;
+  margin-top:15px;
+}
+th,td {
+  padding:12px;
+  border-bottom:1px solid #edf0ed;
+  text-align:left;
+  font-size:14px;
+}
+th {background:var(--light);color:var(--dark)}
+.status {font-weight:bold;color:var(--green)}
+footer {
+  text-align:center;
+  padding:25px;
+  color:#718078;
+  font-size:12px;
+}
+@media(max-width:700px) {
+  .cards {grid-template-columns:repeat(2,1fr)}
+  .panel {overflow-x:auto}
+  table {min-width:550px}
+}
+</style>
+</head>
+<body>
+
+<header>
+  <h2>MTs Darul Hikmah</h2>
+  <p>Sistem Informasi Absensi Siswa</p>
+</header>
+
+<main class="container">
+  <div class="welcome">
+    <h2>Dashboard Absensi</h2>
+    <p>Selamat datang di sistem absensi MTs Darul Hikmah Sukawangi.</p>
+    <p id="tanggal"></p>
+  </div>
+
+  <section class="cards">
+    <div class="card"><small>Total Siswa</small><h2 id="total">0</h2></div>
+    <div class="card"><small>Hadir</small><h2 id="hadir">0</h2></div>
+    <div class="card"><small>Izin</small><h2 id="izin">0</h2></div>
+    <div class="card"><small>Sakit / Alpa</small><h2 id="lain">0</h2></div>
+  </section>
+
+  <section class="panel">
+    <h3>Input Absensi Siswa</h3>
+    <div class="form">
+      <input id="nama" placeholder="Nama siswa">
+      <input id="kelas" placeholder="Kelas (contoh: VII A)">
+      <select id="status">
+        <option value="Hadir">Hadir</option>
+        <option value="Izin">Izin</option>
+        <option value="Sakit">Sakit</option>
+        <option value="Alpa">Alpa</option>
+      </select>
+      <button onclick="tambahAbsensi()">Simpan Absensi</button>
+    </div>
+  </section>
+
+  <section class="panel">
+    <h3>Riwayat Absensi Hari Ini</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>No.</th><th>Nama Siswa</th><th>Kelas</th>
+          <th>Status</th><th>Waktu</th>
+        </tr>
+      </thead>
+      <tbody id="daftar"></tbody>
+    </table>
+  </section>
+</main>
+
+<footer>
+  © 2026 MTs Darul Hikmah Sukawangi · Sistem Absensi Siswa
+</footer>
+
+<script>
+const kunci = "absensi_mts_darul_hikmah";
+let data = JSON.parse(localStorage.getItem(kunci) || "[]");
+
+document.getElementById("tanggal").textContent =
+  new Date().toLocaleDateString("id-ID", {
+    weekday:"long",year:"numeric",month:"long",day:"numeric"
+  });
+
+function simpan() {
+  localStorage.setItem(kunci, JSON.stringify(data));
+  tampilkan();
+}
+
+function tambahAbsensi() {
+  const nama = document.getElementById("nama").value.trim();
+  const kelas = document.getElementById("kelas").value.trim();
+  const status = document.getElementById("status").value;
+
+  if (!nama || !kelas) {
+    alert("Nama siswa dan kelas harus diisi.");
+    return;
+  }
+
+  data.push({
+    nama, kelas, status,
+    waktu:new Date().toLocaleTimeString("id-ID")
+  });
+
+  document.getElementById("nama").value = "";
+  document.getElementById("kelas").value = "";
+  simpan();
+}
+
+function tampilkan() {
+  document.getElementById("total").textContent = data.length;
+  document.getElementById("hadir").textContent =
+    data.filter(x=>x.status==="Hadir").length;
+  document.getElementById("izin").textContent =
+    data.filter(x=>x.status==="Izin").length;
+  document.getElementById("lain").textContent =
+    data.filter(x=>["Sakit","Alpa"].includes(x.status)).length;
+
+  document.getElementById("daftar").innerHTML =
+    data.map((x,i)=>`
+      <tr>
+        <td>${i+1}</td>
+        <td>${escapeHTML(x.nama)}</td>
+        <td>${escapeHTML(x.kelas)}</td>
+        <td class="status">${x.status}</td>
+        <td>${x.waktu}</td>
+      </tr>
+    `).join("");
+}
+
+function escapeHTML(value) {
+  return value.replace(/[&<>"']/g, c => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",
+    '"':"&quot;","'":"&#39;"
+  }[c]));
+}
+
+tampilkan();
+</script>
+</body>
+</html>
